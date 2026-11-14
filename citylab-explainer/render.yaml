@@ -1,0 +1,30 @@
+# Render Cloud deployment blueprint (Vercel / Docker alternative)
+services:
+  # 1. FastAPI Backend
+  - type: web
+    name: citylab-backend
+    env: python
+    rootDir: citylab-explainer/backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: GROQ_API_KEY
+        sync: false
+
+  # 2. Next.js Frontend
+  - type: web
+    name: citylab-frontend
+    env: node
+    rootDir: citylab-explainer/frontend
+    buildCommand: npm install && npm run build
+    startCommand: npm run start
+    envVars:
+      - key: NODE_VERSION
+        value: 20.12.2
+      - key: NEXT_PUBLIC_API_URL
+        fromService:
+          type: web
+          name: citylab-backend
+          property: host
